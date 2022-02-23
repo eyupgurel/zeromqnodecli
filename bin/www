@@ -1,0 +1,134 @@
+#!/usr/bin/env node
+const WebSocket = require('ws');
+const {from, merge} =  require('rxjs');
+const { map, tap, filter } = require('rxjs/operators');
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('zeromqnodecli:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  const zmq = require("zeromq");
+  const sock = zmq.socket("req");
+
+
+  sock.connect("tcp://127.0.0.1:4000");
+  console.log("Worker connected to port 4000");
+
+    sock.on("message", function(m) {
+        console.log("work: %s", m.toString("utf-8"));
+    });
+
+  const buyOrderBook = new Set();
+  const sellOrderBook = new Set();
+
+  const depthSocket = new WebSocket(`wss://stream.binance.com:9443/ws/btcusdt@depth@100ms`);
+
+  var counter = 0;
+
+
+
+
+  //double price, long epochMilli, double quantity, unsigned long id, int ot, int cud
+
+
+
+
+
+  //const msg = '[{"epochMilli":1642538214539,"id":1,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":960.3956237328919},{"epochMilli":1642538214539,"id":2,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":1102.5076036641992},{"epochMilli":1642538214539,"id":3,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":799.2048910631854},{"epochMilli":1642538214539,"id":4,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":1147.7513282994912},{"epochMilli":1642538214539,"id":5,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":1088.3788848866297},{"epochMilli":1642538214539,"id":6,"ot":0,"cud":0,"price":3.2214822600203292,"quantity":1174.962784314314},{"epochMilli":1642538214539,"id":7,"ot":0,"cud":0,"price":3.1788520394867517,"quantity":104.41979195165064},{"epochMilli":1642538214539,"id":8,"ot":0,"cud":0,"price":3.26709875653915,"quantity":119.12001280744323},{"epochMilli":1642538214539,"id":9,"ot":0,"cud":0,"price":3.0775331276616473,"quantity":443.80583616468596},{"epochMilli":1642538214539,"id":10,"ot":0,"cud":0,"price":3.0928365365539268,"quantity":492.3668427531069},{"epochMilli":1642538214539,"id":11,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":340.71155151851843},{"epochMilli":1642538214539,"id":12,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":1087.8963095625045},{"epochMilli":1642538214539,"id":13,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":1023.2156951151502},{"epochMilli":1642538214539,"id":14,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":579.8899683663446},{"epochMilli":1642538214539,"id":15,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":16.189257925344748},{"epochMilli":1642538214539,"id":16,"ot":1,"cud":0,"price":3.357094689314442,"quantity":180.29767478569158},{"epochMilli":1642538214539,"id":17,"ot":1,"cud":0,"price":3.3733747745593843,"quantity":756.0877371946953},{"epochMilli":1642538214539,"id":18,"ot":1,"cud":0,"price":3.4305569002855933,"quantity":985.3173057696861},{"epochMilli":1642538214539,"id":19,"ot":1,"cud":0,"price":3.4208181112743508,"quantity":558.2491399178014},{"epochMilli":1642538214539,"id":20,"ot":1,"cud":0,"price":3.425492587553948,"quantity":1112.547251852281}]'
+
+     // '{"epochMilli":1642538214539,"id":1,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":960.3956237328919}'
+
+     // '[{"epochMilli":1642538214539,"id":1,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":960.3956237328919},{"epochMilli":1642538214539,"id":2,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":1102.5076036641992},{"epochMilli":1642538214539,"id":3,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":799.2048910631854},{"epochMilli":1642538214539,"id":4,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":1147.7513282994912},{"epochMilli":1642538214539,"id":5,"ot":1,"cud":0,"price":2.2250738585072014e-308,"quantity":1088.3788848866297},{"epochMilli":1642538214539,"id":6,"ot":0,"cud":0,"price":3.2214822600203292,"quantity":1174.962784314314},{"epochMilli":1642538214539,"id":7,"ot":0,"cud":0,"price":3.1788520394867517,"quantity":104.41979195165064},{"epochMilli":1642538214539,"id":8,"ot":0,"cud":0,"price":3.26709875653915,"quantity":119.12001280744323},{"epochMilli":1642538214539,"id":9,"ot":0,"cud":0,"price":3.0775331276616473,"quantity":443.80583616468596},{"epochMilli":1642538214539,"id":10,"ot":0,"cud":0,"price":3.0928365365539268,"quantity":492.3668427531069},{"epochMilli":1642538214539,"id":11,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":340.71155151851843},{"epochMilli":1642538214539,"id":12,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":1087.8963095625045},{"epochMilli":1642538214539,"id":13,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":1023.2156951151502},{"epochMilli":1642538214539,"id":14,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":579.8899683663446},{"epochMilli":1642538214539,"id":15,"ot":0,"cud":0,"price":1.7976931348623157e+308,"quantity":16.189257925344748},{"epochMilli":1642538214539,"id":16,"ot":1,"cud":0,"price":3.357094689314442,"quantity":180.29767478569158},{"epochMilli":1642538214539,"id":17,"ot":1,"cud":0,"price":3.3733747745593843,"quantity":756.0877371946953},{"epochMilli":1642538214539,"id":18,"ot":1,"cud":0,"price":3.4305569002855933,"quantity":985.3173057696861},{"epochMilli":1642538214539,"id":19,"ot":1,"cud":0,"price":3.4208181112743508,"quantity":558.2491399178014},{"epochMilli":1642538214539,"id":20,"ot":1,"cud":0,"price":3.425492587553948,"quantity":1112.547251852281}]'
+  //const order = JSON.parse(msg);
+
+
+
+
+
+
+
+
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
