@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 const {from, merge} =  require('rxjs');
-const { map, tap, filter } = require('rxjs/operators');
+const { map, tap, filter, groupBy,mergeMap,toArray,reduce } = require('rxjs/operators');
 
 const uWS = require('../dist/uws.js');
 const port = 9001;
@@ -24,10 +24,26 @@ ws('/depth', {
         console.log("Worker connected to port 4000");
 
         sock.on("message", function(m) {
-            //console.log("work: %s", m.toString("utf-8"));
+            //const es =  JSON.parse(m)  //console.log("work: %s", m.toString("utf-8"));
             if (ws.isAlive) {
                 ws.send(m, false, true);
             }
+
+/*            from(es.asks).
+            pipe(groupBy(ask => ask.price),
+                // return each item in group as array
+                mergeMap(group => group.pipe(toArray())),
+                tap(arr => console.log(arr)),
+                mergeMap(group => from(group)),
+                tap(item => console.log(item)),
+                reduce((acc, val) => [val.price , acc[1] + val.quantity],[0,0]),
+                tap(level => console.log(level))
+                ).
+            subscribe(
+                askList => console.log(askList)
+            )*/
+
+
        });
 
         const buyOrderBook = new Set();
@@ -94,7 +110,8 @@ ws('/depth', {
                         }
                     )
                 )
-            ).subscribe(
+            ).
+            subscribe(
                 x => {
                     let json = JSON.stringify([x])
                     //console.log(json)
