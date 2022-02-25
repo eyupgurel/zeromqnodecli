@@ -33,11 +33,32 @@ ws('/depth', {
             console.log("Worker connected to port 4000");
 
             sock.on("message", function(m) {
-                //const es =  JSON.parse(m)  //console.log("work: %s", m.toString("utf-8"));
+                const es =  JSON.parse(m)  //console.log("work: %s", m.toString("utf-8"));
+
+                if(sellOrderBook.size > 600){
+                    sellOrderBook.clear()
+
+/*                    es.ask_orders.forEach(askOrder => {
+                        if(!sellOrderBook.has(askOrder.id))
+                            sellOrderBook.delete(askOrder.id)
+                    })*/
+                }
+
+
+                if(buyOrderBook.size > 600) {
+                    buyOrderBook.clear()
+                /*    es.bid_orders.forEach(bidOrder => {
+                        if(!buyOrderBook.has(bidOrder.id))
+                            buyOrderBook.delete(bidOrder.id)
+                    })*/
+                }
+
+
+
+
                 if (ws.isAlive) {
                     ws.publish('broadcast-depth', m, isBinary);
                 }
-
             });
 
             const buyOrderBook = new Set();
