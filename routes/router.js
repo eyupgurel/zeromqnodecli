@@ -4,7 +4,10 @@ const { map, tap, filter, groupBy,mergeMap,toArray,reduce } = require('rxjs/oper
 
 const uWS = require('../dist/uws.js');
 const zmq = require("zeromq");
-const port = 9001;
+const sock = zmq.socket("req");
+const port = 8888;
+var initialized = false;
+
 
 const app = uWS.SSLApp({
     key_file_name: 'privkey1.pem',
@@ -16,45 +19,31 @@ ws('/depth', {
     maxPayloadLength: 16 * 1024 * 1024,
     idleTimeout: 10,
     open: (ws) => {
+
         ws.isAlive = true;
         /* Let this client listen to topic "broadcast" */
         //console.log(`A WebSocket connected in lieue of ${ws['user'].phoneNumber}`);
+        sock.connect("tcp://127.0.0.1:4000");
+        console.log("Worker connected to port 4000");
+
         ws.subscribe('broadcast-depth');
     },
     message: (ws, message, isBinary) => {
 
         const m = JSON.parse(new TextDecoder().decode(message));
 
-        if (m && m.init) {
-            const zmq = require("zeromq");
-            const sock = zmq.socket("req");
-
-            sock.connect("tcp://127.0.0.1:4000");
-            console.log("Worker connected to port 4000");
-
+        if (m && m.init && !initialized) {
+            initialized = true;
             sock.on("message", function(m) {
-                const es =  JSON.parse(m)  //console.log("work: %s", m.toString("utf-8"));
+                const es =  JSON.parse(m);  //console.log("work: %s", m.toString("utf-8"));
 
                 if(sellOrderBook.size > 600){
-                    sellOrderBook.clear()
-
-/*                    es.ask_orders.forEach(askOrder => {
-                        if(!sellOrderBook.has(askOrder.id))
-                            sellOrderBook.delete(askOrder.id)
-                    })*/
+                    sellOrderBook.clear();
                 }
-
 
                 if(buyOrderBook.size > 600) {
-                    buyOrderBook.clear()
-                /*    es.bid_orders.forEach(bidOrder => {
-                        if(!buyOrderBook.has(bidOrder.id))
-                            buyOrderBook.delete(bidOrder.id)
-                    })*/
+                    buyOrderBook.clear();
                 }
-
-
-
 
                 if (ws.isAlive) {
                     ws.publish('broadcast-depth', m, isBinary);
@@ -179,7 +168,7 @@ options('/*', (res, req) => {
 
 
 
-const url = 'wss://localhost.futurance.com:9001'
+const url = `wss://localhost.futurance.com:${port}`
 
 const connOrderBookDepth = new WebSocket(`${url}/depth`, {
     protocolVersion: 8,
