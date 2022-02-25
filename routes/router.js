@@ -37,11 +37,11 @@ ws('/depth', {
             sock.on("message", function(m) {
                 const es =  JSON.parse(m);  //console.log("work: %s", m.toString("utf-8"));
 
-                if(sellOrderBook.size > 600){
+                if(sellOrderBook.size > 3000){
                     sellOrderBook.clear();
                 }
 
-                if(buyOrderBook.size > 600) {
+                if(buyOrderBook.size > 3000) {
                     buyOrderBook.clear();
                 }
 
