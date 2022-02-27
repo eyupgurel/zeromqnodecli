@@ -36,7 +36,13 @@ const argv = yargs.
                         describe: 'Maximum number of bids or asks to be held on bid and ask boards until they are flushed',
                         demandOption: true,
                         type: 'number'
-                    }
+                    },
+                    orderPair: {
+                        describe: 'the order pair to be fed into the order matching engine',
+                        demandOption: true,
+                        type: 'string'
+                    },
+
                 }
             }}
         ).argv;
@@ -57,7 +63,7 @@ const app = uWS.SSLApp({
     cert_file_name: 'fullchain1.pem',
     passphrase: '1234'
 }).
-ws('/depth', {
+ws(`/depth/${argv.orderPair}`, {
     compression: uWS.SHARED_COMPRESSOR,
     maxPayloadLength: 16 * 1024 * 1024,
     idleTimeout: 8,
@@ -212,9 +218,9 @@ options('/*', (res, req) => {
 
 const url = `${argv.uWebSocketBroadCastUri}:${argv.uWebSocketBroadCastPort}`
 
-const connOrderBookDepth = new WebSocket(`${url}/depth`, {
+const connOrderBookDepth = new WebSocket(`${url}/depth/${argv.orderPair}`, {
     protocolVersion: 8,
-    origin: `${url}/depth`,
+    origin: `${url}/depth/${argv.orderPair}`,
     rejectUnauthorized: false
 });
 
