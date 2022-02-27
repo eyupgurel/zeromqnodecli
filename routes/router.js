@@ -2,12 +2,20 @@ const WebSocket = require('ws');
 const {from, merge} =  require('rxjs');
 const { map, tap, filter, groupBy,mergeMap,toArray,reduce } = require('rxjs/operators');
 
+const myArgs = process.argv.slice(4)
+
+const zeromqRequestUri = 'tcp://127.0.0.1'; //  myArgs[0];
+const zeromqRequestPort = 4000; //parseInt(myArgs[1]);
+const uwebsocketUri = 'wss://127.0.0.1'; // myArgs[2];
+const uwebsocketBroadcastPort = 8888; //  parseInt(myArgs[3]);
+const binanceStreamUri = 'wss://stream.binance.com:9443/ws/btcusdt@depth@100ms'; //myArgs[4];
+const maxBoardSize = 4000; //parseInt(myArgs[5]);
+
 const uWS = require('../dist/uws.js');
 const zmq = require("zeromq");
 const sock = zmq.socket("req");
-const port = 8888;
-var initialized = false;
 
+var initialized = false;
 
 const app = uWS.SSLApp({
     key_file_name: 'privkey1.pem',
@@ -17,14 +25,16 @@ const app = uWS.SSLApp({
 ws('/depth', {
     compression: uWS.SHARED_COMPRESSOR,
     maxPayloadLength: 16 * 1024 * 1024,
-    idleTimeout: 10,
+    idleTimeout: 8,
     open: (ws) => {
-
         ws.isAlive = true;
         /* Let this client listen to topic "broadcast" */
         //console.log(`A WebSocket connected in lieue of ${ws['user'].phoneNumber}`);
-        sock.connect("tcp://127.0.0.1:4000");
-        console.log("Worker connected to port 4000");
+        sock.connect(`${zeromqRequestUri}:${zeromqRequestPort}`);
+        console.log(`socket connected to ${zeromqRequestUri}:${zeromqRequestPort}`);
+
+        //sock.connect("tcp://127.0.0.1:4000");
+        //console.log("Worker connected to port 4000");
 
         ws.subscribe('broadcast-depth');
     },
@@ -37,11 +47,11 @@ ws('/depth', {
             sock.on("message", function(m) {
                 const es =  JSON.parse(m);  //console.log("work: %s", m.toString("utf-8"));
 
-                if(sellOrderBook.size > 3000){
+                if(sellOrderBook.size > maxBoardSize){
                     sellOrderBook.clear();
                 }
 
-                if(buyOrderBook.size > 3000) {
+                if(buyOrderBook.size > maxBoardSize) {
                     buyOrderBook.clear();
                 }
 
@@ -52,8 +62,8 @@ ws('/depth', {
 
             const buyOrderBook = new Set();
             const sellOrderBook = new Set();
-            const depthSocket = new WebSocket(`wss://stream.binance.com:9443/ws/btcusdt@depth@100ms`);
-
+            const depthSocket = new WebSocket(`${binanceStreamUri}`);
+            console.log(`binance depth stream ${binanceStreamUri}`);
 
             depthSocket.onmessage = (event) => {
                 const m = JSON.parse(event.data);
@@ -157,18 +167,15 @@ options('/*', (res, req) => {
     res.writeHeader('Access-Control-Allow-Method', 'POST,GET,OPTIONS');
     res.writeHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, rejectUnauthorized, credentials, requestCert, x-auth");
     res.end();
-}).listen(port, (token) => {
+}).listen(uwebsocketBroadcastPort, (token) => {
     if (token) {
-        console.log('Listening to port ' + port);
+        console.log('Listening to port ' + uwebsocketBroadcastPort);
     } else {
-        console.log('Failed to listen to port ' + port);
+        console.log('Failed to listen to port ' + uwebsocketBroadcastPort);
     }
 });
 
-
-
-
-const url = `wss://localhost.futurance.com:${port}`
+const url = `${uwebsocketUri}:${uwebsocketBroadcastPort}`
 
 const connOrderBookDepth = new WebSocket(`${url}/depth`, {
     protocolVersion: 8,
@@ -179,5 +186,3 @@ const connOrderBookDepth = new WebSocket(`${url}/depth`, {
 connOrderBookDepth.onopen = () => {
     connOrderBookDepth.send(JSON.stringify({ init: true }));
 }
-
-
