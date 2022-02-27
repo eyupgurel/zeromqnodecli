@@ -1,15 +1,64 @@
+const yargs = require('yargs');
+
+const argv = yargs.
+    command('feed', 'Feed matching engine with binance depth stream.',
+        {
+            feed: {
+                description: 'Feed matching engine with binance depth stream. Matching engine is on the receiving end of ZeroMQ request socket',
+                alias: 'feed',
+                builder: {
+                    zmqReqUri: {
+                        describe: 'the ZeroMQ request socket to connect to',
+                        demandOption: true,
+                        type: 'string'
+                    },
+                    zmqReqPort: {
+                        describe: 'the ZeroMQ request socket port to connect to',
+                        demandOption: true,
+                        type: 'number'
+                    },
+                    uWebSocketBroadCastUri: {
+                        describe: 'asks, bids, order matches and matching engine state is broadcasted through this socket uri',
+                        demandOption: true,
+                        type: 'string'
+                    },
+                    uWebSocketBroadCastPort: {
+                        describe: 'Second Number',
+                        demandOption: true,
+                        type: 'number'
+                    },
+                    binanceDepthSocketUri: {
+                        describe: 'the binance socket through which depth is intended to be consumed',
+                        demandOption: true,
+                        type: 'string'
+                    },
+                    maxBoardSize: {
+                        describe: 'Maximum number of bids or asks to be held on bid and ask boards until they are flushed',
+                        demandOption: true,
+                        type: 'number'
+                    }
+                }
+            }}
+        ).argv;
+//yargs.parse();
+
+
+
+
+
+
 const WebSocket = require('ws');
 const {from, merge} =  require('rxjs');
 const { map, tap, filter, groupBy,mergeMap,toArray,reduce } = require('rxjs/operators');
 
 const myArgs = process.argv.slice(4)
 
-const zeromqRequestUri = 'tcp://127.0.0.1'; //  myArgs[0];
-const zeromqRequestPort = 4000; //parseInt(myArgs[1]);
-const uwebsocketUri = 'wss://127.0.0.1'; // myArgs[2];
-const uwebsocketBroadcastPort = 8888; //  parseInt(myArgs[3]);
-const binanceStreamUri = 'wss://stream.binance.com:9443/ws/btcusdt@depth@100ms'; //myArgs[4];
-const maxBoardSize = 4000; //parseInt(myArgs[5]);
+const zeromqRequestUri = argv.zmqReqUri; //'tcp://127.0.0.1'; //  myArgs[0];
+const zeromqRequestPort = argv.zmqReqPort; // 4000; //parseInt(myArgs[1]);
+const uwebsocketUri = argv.uWebSocketBroadCastUri; // 'wss://127.0.0.1'; // myArgs[2];
+const uwebsocketBroadcastPort = argv.uWebSocketBroadCastPort; // 8888; //  parseInt(myArgs[3]);
+const binanceStreamUri = argv.binanceDepthSocketUri; // 'wss://stream.binance.com:9443/ws/btcusdt@depth@100ms'; //myArgs[4];
+const maxBoardSize = argv.maxBoardSize; // 4000; //parseInt(myArgs[5]);
 
 const uWS = require('../dist/uws.js');
 const zmq = require("zeromq");
