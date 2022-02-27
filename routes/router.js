@@ -40,12 +40,6 @@ const argv = yargs.
                 }
             }}
         ).argv;
-//yargs.parse();
-
-
-
-
-
 
 const WebSocket = require('ws');
 const {from, merge} =  require('rxjs');
